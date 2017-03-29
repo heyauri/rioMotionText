@@ -193,6 +193,9 @@ function rioMotionText(content, option, canvas) {
 
     this.start = function () {
         var duration = option.duration || 2000;
+        if(option.randomDelay){
+            duration+=Math.random()*1000;
+        }
         this.recompute();
         this.textInterval = setInterval(function () {
             processCount=0;
@@ -219,71 +222,6 @@ function rioMotionText(content, option, canvas) {
         }
     };
 
-    this.update = function () {
-        processCount++;
-        colorChangeCount++;
-        if(Math.random()>0.7&&colorChangeCount>40){
-            if(processCount/(_this.option.duration*(24+Math.round(Math.random()))/2000)>1.5+Math.random()){
-                strokeColor='#fff';
-                backgroundColor='#000';
-                colorChangeCount=0;
-            }
-            else if(processCount>(_this.option.duration*(24+Math.round(Math.random()*6))/2000)){
-                strokeColor='#000';
-                backgroundColor='transparent';
-                colorChangeCount=0;
-            }
-        }
-
-        context.clearRect(0, 0, _this.option.width, _this.option.height);
-        context.rect(0,0,_this.option.width, _this.option.height);
-        context.fillStyle=backgroundColor;
-        context.fill();
-        context.fillStyle = strokeColor;
-        context.strokeStyle = strokeColor;
-        console.log(processCount/10)
-        for(var charIndex=0;charIndex<dotsBuffer.length;charIndex++){
-            var charDots=dotsBuffer[charIndex],i=0;
-            if(processCount/5>charIndex){
-                for (i = 0; i < charDots.length; i++) {
-                    charDots[i].update();
-                    charDots[i].paint();
-                }
-            }
-            else{
-                for (i = 0; i < charDots.length; i++) {
-                    charDots[i].paint();
-                }
-            }
-        }
-
-        _this.particleLink();
-        _this.requestId = requestAnimationFrame(_this.update)
-    };
-
-    this.particleLink=function(){
-        for(var dotIndex=0;dotIndex<dotsBuffer.length;dotIndex++){
-            var dotsGroup=dotsBuffer[dotIndex];
-            for(var i=0;i<dotsGroup.length;i=i+4){
-                for(var j=0;j<dotsGroup.length;j++){
-                    var dot_1=dotsGroup[i];
-                    var dot_2=dotsGroup[j];
-                    if(!dot_1['inPlace']||!dot_2['inPlace']){
-                        continue;
-                    }
-                    var dSquare=Math.pow((dotsGroup[i].x-dotsGroup[j].x),2)+Math.pow((dotsGroup[i].y-dotsGroup[j].y),2);
-                    if(dSquare<49){
-                        context.beginPath();
-                        context.moveTo(dotsGroup[i].x,dotsGroup[i].y);
-                        context.lineTo(dotsGroup[j].x,dotsGroup[j].y);
-                        context.stroke();
-                        context.closePath();
-                    }
-                }
-            }
-        }
-    };
-
     this.coordinateRecompute=function(){
         if (currentTextIndex == textBuffer.length) {
             currentTextIndex = 0;
@@ -298,7 +236,8 @@ function rioMotionText(content, option, canvas) {
             var totalArray = [], coordinateArray = [],i=0;
             totalArray = currentTextArr[charIndex].getCoordinateArray();
             //for ( i = 0; i < totalArray.length; i++) {
-            for ( i = 0; i < totalArray.length; i = i +4+ Math.floor(4 * Math.random())) {
+            var fontSizeFactor=this.option.fontSize/20-1;
+            for ( i = 0; i < totalArray.length; i = i +4+ Math.floor(fontSizeFactor* Math.random())) {
                 var coordinate = {
                     x: totalArray[i].x + offset_x + (charIndex * this.option.fontSize)*0.5,
                     y: totalArray[i].y + offset_y
@@ -346,6 +285,71 @@ function rioMotionText(content, option, canvas) {
 
         console.log(dots.length);
     };
+
+    this.update = function () {
+        processCount++;
+        colorChangeCount++;
+        if(Math.random()>0.7&&colorChangeCount>40){
+            if(processCount/(_this.option.duration*(24+Math.round(Math.random()))/2000)>1.5+Math.random()){
+                strokeColor='#fff';
+                backgroundColor='#000';
+                colorChangeCount=0;
+            }
+            else if(processCount>(_this.option.duration*(24+Math.round(Math.random()*6))/2000)){
+                strokeColor='#000';
+                backgroundColor='transparent';
+                colorChangeCount=0;
+            }
+        }
+
+        context.clearRect(0, 0, _this.option.width, _this.option.height);
+        context.rect(0,0,_this.option.width, _this.option.height);
+        context.fillStyle=backgroundColor;
+        context.fill();
+        context.fillStyle = strokeColor;
+        context.strokeStyle = strokeColor;
+        console.log(processCount/10)
+        for(var charIndex=0;charIndex<dotsBuffer.length;charIndex++){
+            var charDots=dotsBuffer[charIndex],i=0;
+            if(processCount>charIndex){
+                for (i = 0; i < charDots.length; i++) {
+                    charDots[i].update();
+                    charDots[i].paint();
+                }
+            }
+            else{
+                for (i = 0; i < charDots.length; i++) {
+                    charDots[i].paint();
+                }
+            }
+        }
+
+        _this.particleLink();
+        _this.requestId = requestAnimationFrame(_this.update)
+    };
+
+    this.particleLink=function(){
+        for(var dotIndex=0;dotIndex<dotsBuffer.length;dotIndex++){
+            var dotsGroup=dotsBuffer[dotIndex];
+            for(var i=0;i<dotsGroup.length;i=i+4){
+                for(var j=0;j<dotsGroup.length;j++){
+                    var dot_1=dotsGroup[i];
+                    var dot_2=dotsGroup[j];
+                    if(!dot_1['inPlace']||!dot_2['inPlace']){
+                        continue;
+                    }
+                    var dSquare=Math.pow((dotsGroup[i].x-dotsGroup[j].x),2)+Math.pow((dotsGroup[i].y-dotsGroup[j].y),2);
+                    if(dSquare<49){
+                        context.beginPath();
+                        context.moveTo(dotsGroup[i].x,dotsGroup[i].y);
+                        context.lineTo(dotsGroup[j].x,dotsGroup[j].y);
+                        context.stroke();
+                        context.closePath();
+                    }
+                }
+            }
+        }
+    };
     this.init();
 }
 
@@ -355,7 +359,8 @@ window.onload = function () {
         fontSize: 90,
         width: document.documentElement.clientWidth,
         height: document.documentElement.clientHeight,
-        duration: 3000
+        duration: 3000,
+        randomDelay:true
     };
     if(option.width<1024){
         canvas.style.zoom=option.width/1024;
